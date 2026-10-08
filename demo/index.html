@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Money Visualiser embed builder</title>
+    <meta name="description" content="Build a live 3D money embed for your site and copy the code." />
+    <style>
+      :root {
+        --bg: #0b0e11;
+        --panel: #14181d;
+        --line: rgba(243, 239, 226, 0.12);
+        --fg: #f3efe2;
+        --muted: rgba(243, 239, 226, 0.62);
+        --gold: #fdc521;
+        --ink: #1a1404;
+        color-scheme: dark;
+      }
+      * { box-sizing: border-box; }
+      [hidden] { display: none !important; }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--fg);
+        font: 15px/1.5 system-ui, -apple-system, 'Segoe UI', sans-serif;
+      }
+      header, main { max-width: 1200px; margin: 0 auto; padding: 0 1.25rem; }
+      header { padding-top: 2.5rem; padding-bottom: 1.5rem; }
+      h1 { margin: 0; font-size: clamp(1.6rem, 1.2rem + 1.5vw, 2.3rem); letter-spacing: -0.02em; }
+      header p { margin: 0.5rem 0 0; color: var(--muted); max-width: 46em; }
+      header a { color: var(--gold); }
+      main {
+        display: grid;
+        grid-template-columns: minmax(16rem, 22rem) minmax(0, 1fr);
+        gap: 1.5rem;
+        padding-bottom: 3rem;
+      }
+      form, .output { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 1.25rem; }
+      fieldset { border: 0; margin: 0 0 1rem; padding: 0; }
+      legend, label > span { display: block; margin-bottom: 0.3rem; font-size: 0.8rem; font-weight: 600; color: var(--muted); }
+      label { display: block; margin-bottom: 0.85rem; }
+      input[type='number'], select {
+        width: 100%;
+        min-height: 2.6rem;
+        padding: 0.45rem 0.65rem;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--bg);
+        color: var(--fg);
+        font: inherit;
+      }
+      .row { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 0.75rem; }
+      .segmented { display: inline-flex; padding: 3px; border: 1px solid var(--line); border-radius: 999px; }
+      .segmented label { margin: 0; }
+      .segmented input { position: absolute; opacity: 0; pointer-events: none; }
+      .segmented span {
+        display: block; margin: 0; padding: 0.35rem 0.95rem; border-radius: 999px;
+        color: var(--muted); font-size: 0.85rem; font-weight: 600; cursor: pointer;
+      }
+      .segmented input:checked + span { background: var(--gold); color: var(--ink); }
+      .segmented input:focus-visible + span { outline: 2px solid var(--gold); outline-offset: 2px; }
+      .checks label { display: flex; align-items: center; gap: 0.55rem; margin-bottom: 0.5rem; font-size: 0.9rem; }
+      .checks input { width: 1.05rem; height: 1.05rem; accent-color: var(--gold); }
+      .preview {
+        display: grid; place-items: center; min-height: 20rem; padding: 1rem;
+        border: 1px dashed var(--line); border-radius: 12px; overflow: auto;
+      }
+      .preview iframe { max-width: 100%; }
+      .error { color: #ff8a7a; font-weight: 600; }
+      .code-head { display: flex; justify-content: space-between; align-items: center; margin: 1.25rem 0 0.5rem; }
+      .code-head h2 { margin: 0; font-size: 0.95rem; }
+      button {
+        min-height: 2.4rem; padding: 0.4rem 1rem; border: 0; border-radius: 999px;
+        background: var(--gold); color: var(--ink); font: inherit; font-weight: 650; cursor: pointer;
+      }
+      pre {
+        margin: 0; padding: 1rem; border-radius: 10px; background: var(--bg); border: 1px solid var(--line);
+        overflow-x: auto; font: 0.82rem/1.55 ui-monospace, 'SF Mono', Menlo, Consolas, monospace; white-space: pre-wrap; word-break: break-all;
+      }
+      footer { max-width: 1200px; margin: 0 auto; padding: 0 1.25rem 2.5rem; color: var(--muted); font-size: 0.85rem; }
+      footer a { color: var(--fg); }
+      @media (max-width: 820px) { main { grid-template-columns: 1fr; } }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Money Visualiser embed builder</h1>
+      <p>
+        Choose a scene, preview it live and copy the code into any page. The embed carries no ads, no cookie banner and
+        no analytics. Documentation: <a href="https://github.com/Rising-Throne/moneyvisualiser-embed">moneyvisualiser-embed</a>.
+      </p>
+    </header>
+
+    <main>
+      <form id="form" aria-label="Embed settings">
+        <fieldset>
+          <legend>Mode</legend>
+          <div class="segmented">
+            <label><input type="radio" name="mode" value="single" /><span>One stack</span></label>
+            <label><input type="radio" name="mode" value="compare" checked /><span>Compare</span></label>
+          </div>
+        </fieldset>
+
+        <label><span>Amount</span><input type="number" name="amount" value="1000000" min="1" step="any" /></label>
+        <div class="row">
+          <label><span>Currency</span><select name="from"></select></label>
+          <label id="to-field"><span>Compare with</span><select name="to"></select></label>
+        </div>
+
+        <label><span>Environment</span><select name="environment"></select></label>
+        <div class="row">
+          <label><span>Surface</span><select name="surface"></select></label>
+          <label><span>Camera</span><select name="camera"></select></label>
+        </div>
+
+        <div class="row">
+          <label><span>Background</span><select name="theme"></select></label>
+          <label><span>Size</span><select name="size">
+            <option value="responsive">Responsive</option>
+            <option value="large" selected>640 × 480</option>
+            <option value="medium">480 × 360</option>
+            <option value="small">300 × 250</option>
+          </select></label>
+        </div>
+
+        <fieldset class="checks">
+          <legend>Show</legend>
+          <label><input type="checkbox" name="labels" checked /> Value labels</label>
+          <label><input type="checkbox" name="stats" /> Note count, weight and height</label>
+          <label><input type="checkbox" name="ruler" /> Measuring ruler</label>
+          <label><input type="checkbox" name="closeUp" /> Start close up (hides labels)</label>
+        </fieldset>
+      </form>
+
+      <section class="output" aria-label="Preview and code">
+        <div class="preview" id="preview"></div>
+        <div class="code-head">
+          <h2>Embed code</h2>
+          <button type="button" id="copy">Copy code</button>
+        </div>
+        <pre id="code"></pre>
+      </section>
+    </main>
+
+    <footer>
+      Built with the <code>moneyvisualiser-embed</code> helper. Money Visualiser is a product of
+      <a href="https://therisingthrone.com">Rising Throne</a>.
+    </footer>
+
+    <script type="module">
+      import {
+        CAMERAS,
+        CURRENCIES,
+        DEFAULTS,
+        ENVIRONMENTS,
+        SIZES,
+        SURFACES,
+        THEMES,
+        embedCode,
+        embedTitle,
+        embedUrl,
+      } from '../src/index.js';
+
+      const form = document.getElementById('form');
+      const preview = document.getElementById('preview');
+      const code = document.getElementById('code');
+      const copy = document.getElementById('copy');
+
+      const label = (s) => s.replace(/-/g, ' ').replace(/^./, (c) => c.toUpperCase());
+      const fill = (name, values, selected, text = label) => {
+        form.elements[name].innerHTML = values
+          .map((v) => `<option value="${v}"${v === selected ? ' selected' : ''}>${text(v)}</option>`)
+          .join('');
+      };
+      const codes = Object.keys(CURRENCIES);
+      fill('from', codes, 'USD', (c) => `${c} — ${CURRENCIES[c]}`);
+      fill('to', codes, 'EUR', (c) => `${c} — ${CURRENCIES[c]}`);
+      fill('environment', ENVIRONMENTS, DEFAULTS.environment);
+      fill('surface', SURFACES, DEFAULTS.surface);
+      fill('camera', CAMERAS, DEFAULTS.camera);
+      fill('theme', THEMES, DEFAULTS.theme);
+
+      let shownUrl = '';
+      function update() {
+        const f = form.elements;
+        const options = {
+          mode: f.mode.value,
+          amount: Number(f.amount.value),
+          from: f.from.value,
+          to: f.to.value,
+          environment: f.environment.value,
+          surface: f.surface.value,
+          camera: f.camera.value,
+          theme: f.theme.value,
+          labels: f.labels.checked,
+          stats: f.stats.checked,
+          ruler: f.ruler.checked,
+          closeUp: f.closeUp.checked,
+        };
+        document.getElementById('to-field').hidden = options.mode === 'single';
+        const size = SIZES[f.size.value];
+        try {
+          const url = embedUrl(options);
+          code.textContent = embedCode(options, size);
+          if (url !== shownUrl) {
+            shownUrl = url;
+            preview.innerHTML = '';
+            const frame = document.createElement('iframe');
+            frame.src = url;
+            frame.title = embedTitle(options);
+            frame.width = String(size.width);
+            frame.height = String(size.height);
+            frame.style.cssText = 'border:0;border-radius:12px;';
+            preview.append(frame);
+          } else {
+            const frame = preview.querySelector('iframe');
+            frame.width = String(size.width);
+            frame.height = String(size.height);
+          }
+        } catch (error) {
+          preview.innerHTML = `<p class="error" role="alert">${error.message}</p>`;
+          code.textContent = '';
+          shownUrl = '';
+        }
+      }
+
+      form.addEventListener('input', update);
+      form.addEventListener('change', update);
+      copy.addEventListener('click', async () => {
+        await navigator.clipboard.writeText(code.textContent);
+        copy.textContent = 'Copied';
+        setTimeout(() => (copy.textContent = 'Copy code'), 1800);
+      });
+      update();
+    </script>
+  </body>
+</html>

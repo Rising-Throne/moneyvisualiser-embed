@@ -1,0 +1,21 @@
+{
+  "name": "moneyvisualiser-embed",
+  "version": "1.0.0",
+  "description": "Embed live 3D money stacks from Money Visualiser in any web page.",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./src/index.d.ts",
+      "default": "./src/index.js"
+    }
+  },
+  "types": "./src/index.d.ts",
+  "files": ["src"],
+  "scripts": {
+    "test": "node --test"
+  },
+  "keywords": ["money", "currency", "3d", "embed", "iframe", "visualisation"],
+  "homepage": "https://github.com/Rising-Throne/moneyvisualiser-embed",
+  "license": "MIT",
+  "engines": { "node": ">=18" }
+}
