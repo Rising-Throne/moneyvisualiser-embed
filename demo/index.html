@@ -118,6 +118,8 @@
           <label><span>Renderer</span><select name="renderer"></select></label>
         </div>
 
+        <label><span>Loading screen</span><select name="loader"></select></label>
+
         <div class="row">
           <label><span>Size</span><select name="size">
             <option value="responsive" selected>Responsive</option>
@@ -134,6 +136,7 @@
           <label><input type="checkbox" name="amounts" checked /> Amount badges</label>
           <label><input type="checkbox" name="stats" /> Note count, weight and height</label>
           <label><input type="checkbox" name="ruler" /> Measuring ruler (compare mode, tower)</label>
+          <label><input type="checkbox" name="person" /> Person for scale</label>
           <label><input type="checkbox" name="closeUp" /> Start close up (hides labels)</label>
         </fieldset>
       </form>
@@ -164,6 +167,7 @@
         CURRENCIES,
         DEFAULTS,
         ENVIRONMENTS,
+        LOADERS,
         RENDERERS,
         SIZES,
         SURFACES,
@@ -210,6 +214,7 @@
       fill('camera', CAMERAS, DEFAULTS.camera);
       fill('theme', THEMES, DEFAULTS.theme);
       fill('renderer', RENDERERS, DEFAULTS.renderer, (r) => (r === 'auto' ? 'Auto (WebGPU, falls back to WebGL)' : label(r)));
+      fill('loader', LOADERS, DEFAULTS.loader, (l) => (l === 'default' ? 'Logo (default)' : l === 'none' ? 'None' : label(l)));
       fill('ratio', ASPECT_RATIOS, ASPECT_RATIOS[0], (r) => r.replace(/ /g, ''));
 
       let shownUrl = '';
@@ -237,10 +242,12 @@
           camera: f.camera.value,
           theme: f.theme.value,
           renderer: f.renderer.value,
+          loader: f.loader.value,
           labels: f.labels.checked,
           amounts: f.amounts.checked,
           stats: f.stats.checked,
           ruler: f.ruler.checked,
+          person: f.person.checked,
           closeUp: f.closeUp.checked,
         };
         const responsive = f.size.value === 'responsive';

@@ -30,6 +30,11 @@ export const CAMERAS = Object.freeze(['normal', 'overhead', 'side-left', 'side-r
 export const THEMES = Object.freeze(['dark', 'light']);
 /** `auto` = WebGPU where the browser supports it, falling back to WebGL by itself. */
 export const RENDERERS = Object.freeze(['auto', 'webgl']);
+/**
+ * What covers the frame while the scene loads: the pulsing logo (`default`),
+ * nothing (`none`), or one of the animated sequences that reveal the scene.
+ */
+export const LOADERS = Object.freeze(['default', 'none', 'portal', 'warp', 'shutters', 'blueprint', 'gold-dust', 'cinema']);
 
 /** The renderer's own defaults. Options equal to these are left out of the URL. */
 export const DEFAULTS = Object.freeze({
@@ -44,9 +49,11 @@ export const DEFAULTS = Object.freeze({
   labels: true,
   amounts: true,
   ruler: false,
+  person: false,
   theme: 'dark',
   stats: false,
   renderer: 'auto',
+  loader: 'default',
 });
 
 /** Fixed sizes offered by the configurator at moneyvisualiser.com/embed. */
@@ -93,6 +100,7 @@ function resolve(options) {
   oneOf('camera', o.camera, CAMERAS);
   oneOf('theme', o.theme, THEMES);
   oneOf('renderer', o.renderer, RENDERERS);
+  oneOf('loader', o.loader, LOADERS);
   return { ...o, amount, from: currency('from', o.from), to: currency('to', o.to) };
 }
 
@@ -119,9 +127,11 @@ export function embedUrl(options = {}) {
   if (!o.amounts) params.set('showAmounts', 'false');
   // The ruler is only drawn in compare mode (on the tower surface).
   if (o.ruler && o.mode === 'compare') params.set('showRuler', 'true');
+  if (o.person) params.set('showPerson', 'true');
   if (o.stats) params.set('stats', 'true');
   if (o.theme !== DEFAULTS.theme) params.set('theme', o.theme);
   if (o.renderer === 'webgl') params.set('webgl', 'true');
+  if (o.loader !== DEFAULTS.loader) params.set('loader', o.loader);
 
   return `${ORIGIN}${RENDER_PATH}?${params.toString()}`;
 }
@@ -205,9 +215,11 @@ export function scriptCode(options = {}, frame = {}) {
   if (o.labels && !o.closeUp) attrs.push(['data-show-labels', 'true']);
   if (!o.amounts) attrs.push(['data-show-amounts', 'false']);
   if (o.ruler && o.mode === 'compare') attrs.push(['data-show-ruler', 'true']);
+  if (o.person) attrs.push(['data-show-person', 'true']);
   if (!o.stats) attrs.push(['data-show-stats', 'false']);
   if (o.theme === 'light') attrs.push(['data-theme', 'light']);
   if (o.renderer === 'webgl') attrs.push(['data-renderer', 'webgl']);
+  if (o.loader !== 'default') attrs.push(['data-loader', o.loader]);
   if (frame.aspectRatio !== undefined) {
     attrs.push(['data-aspect-ratio', aspectRatio(frame.aspectRatio).replace(/\s+/g, '')]);
   }
