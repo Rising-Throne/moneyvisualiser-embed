@@ -34,9 +34,11 @@ test('every option maps to the renderer parameter it reads', () => {
       labels: false,
       amounts: false,
       ruler: true,
+      person: true,
       theme: 'light',
       stats: true,
       renderer: 'webgl',
+      loader: 'gold-dust',
     }),
   );
   assert.deepEqual(p, {
@@ -49,9 +51,11 @@ test('every option maps to the renderer parameter it reads', () => {
     showLabels: 'false',
     showAmounts: 'false',
     showRuler: 'true',
+    showPerson: 'true',
     stats: 'true',
     theme: 'light',
     webgl: 'true',
+    loader: 'gold-dust',
   });
 });
 
@@ -77,6 +81,7 @@ test('unknown values are rejected instead of reaching the renderer', () => {
   assert.throws(() => embedUrl({ environment: 'gold' }), /environment must be one of/);
   assert.throws(() => embedUrl({ camera: 'freeview' }), /camera must be one of/);
   assert.throws(() => embedUrl({ renderer: 'webgpu' }), /renderer must be one of/);
+  assert.throws(() => embedUrl({ loader: 'spinner' }), /loader must be one of/);
   assert.throws(() => embedUrl({ from: 'XYZ' }), /82 supported currency codes/);
   assert.throws(() => embedUrl({ amount: -5 }), /positive number/);
 });
@@ -104,7 +109,7 @@ test('the script snippet only writes what differs from the script defaults', () 
   assert.deepEqual(
     attrs(
       scriptCode(
-        { amount: 5e4, from: 'EUR', to: 'JPY', mode: 'compare', environment: 'warehouse', surface: 'auto', labels: true, stats: false, theme: 'light' },
+        { amount: 5e4, from: 'EUR', to: 'JPY', mode: 'compare', environment: 'warehouse', surface: 'auto', labels: true, person: true, stats: false, theme: 'light', loader: 'none' },
         { aspectRatio: '4 / 3', maxWidth: 'none' },
       ),
     ),
@@ -116,8 +121,10 @@ test('the script snippet only writes what differs from the script defaults', () 
       'data-env': 'warehouse',
       'data-surface': 'auto',
       'data-show-labels': 'true',
+      'data-show-person': 'true',
       'data-show-stats': 'false',
       'data-theme': 'light',
+      'data-loader': 'none',
       'data-aspect-ratio': '4/3',
       'data-max-width': 'none',
     },
@@ -135,7 +142,9 @@ test('defaults cover every option', () => {
     'environment',
     'from',
     'labels',
+    'loader',
     'mode',
+    'person',
     'renderer',
     'ruler',
     'stats',

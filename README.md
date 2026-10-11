@@ -40,13 +40,15 @@ Change the settings in the address to change the scene. Everything you can set i
 | `showLabels` | `false` | shown | Hide the value labels on the stacks |
 | `showAmounts` | `false` | shown | Hide the amount badges along the top edge of the frame |
 | `showRuler` | `true` | hidden | Show a measuring ruler; drawn in compare mode on the `tower` surface |
+| `showPerson` | `true` | hidden | Stand a 1.75 m person silhouette beside the money, for scale |
 | `stats` | `true` | hidden | Show the note count, weight and height of the stack |
 | `theme` | `dark`, `light` | `dark` | Colour of the frame's badges, stats panel and credit. The 3D scene itself is lit by its environment |
 | `webgl` | `true` | off | Force WebGL instead of trying WebGPU first; see [renderer](#renderer) |
+| `loader` | `default`, `none`, `portal`, `warp`, `shutters`, `blueprint`, `gold-dust`, `cinema` | `default` | What covers the frame while the scene loads; see [loading screens](#loading-screens) |
 
 Values must match exactly. The renderer replaces anything it doesn't recognise with the default, so a typo such as `env=gold` quietly gives you the gold vault and `from=XYZ` gives you US dollars. The [JavaScript helper](#javascript-helper) throws on mistakes like these before they reach your page.
 
-Amounts have no upper limit in embeds; the Money Visualiser web app itself stops at $128 billion for a single stack. Very large amounts are heavy to draw, so check them in the preview before publishing.
+Amounts have no upper limit in embeds; the Money Visualiser web app itself stops at $128 billion. Very large amounts are heavy to draw, so check them in the preview before publishing.
 
 ### Environments
 
@@ -121,9 +123,11 @@ Every attribute is optional. Without any, the script draws what it always has: o
 | `data-show-labels` | `true`, `false` | `false` |
 | `data-show-amounts` | `true`, `false` | `true` |
 | `data-show-ruler` | `true`, `false` | `false` |
+| `data-show-person` | `true`, `false` | `false` |
 | `data-show-stats` | `true`, `false` | `true` |
 | `data-theme` | `dark`, `light` | `dark` |
 | `data-renderer` | `auto`, `webgl` | `auto` |
+| `data-loader` | Any `loader` value | `default` |
 | `data-aspect-ratio` | A ratio such as `16/9`, `4/3` or `640/480` | `16/9` |
 | `data-max-width` | Pixels, or `none` to fill the column | `800` |
 
@@ -174,7 +178,7 @@ embedUrl({ environment: 'gold' });
 // TypeError: environment must be one of gold-vault, warehouse, aircraft-carrier, …
 ```
 
-The options use readable names (`environment`, `closeUp`, `labels`, `amounts`, `ruler`, `renderer`); TypeScript types are included. A React component is in [`examples/react`](examples/react/MoneyVisualiserEmbed.tsx).
+The options use readable names (`environment`, `closeUp`, `labels`, `amounts`, `ruler`, `person`, `renderer`, `loader`); TypeScript types are included. A React component is in [`examples/react`](examples/react/MoneyVisualiserEmbed.tsx).
 
 ## Currencies
 
@@ -192,6 +196,15 @@ Names for each code are in [`src/currencies.js`](src/currencies.js). Crypto and 
 ## Renderer
 
 Embeds draw with **WebGPU** where the visitor's browser supports it and fall back to **WebGL** automatically, including when the GPU fails partway through. Every current desktop and mobile browser can show the scene. Add `webgl=true` (or `renderer: 'webgl'` in the helper, `data-renderer="webgl"` on the script) to skip WebGPU entirely, for example if a page already runs other heavy WebGPU content.
+
+## Loading screens
+
+While the scene loads, the frame shows the pulsing Money Visualiser logo (`default`). Set `loader` to pick something else:
+
+- `none` shows nothing; the scene simply appears when it is ready.
+- `portal`, `warp`, `shutters`, `blueprint`, `gold-dust` and `cinema` are animated sequences that reveal the scene once it has loaded and, on desktop, fly the camera in. They start with a poster card that shows the amount.
+
+Visitors who ask their system for reduced motion get a short cross-fade instead of the animation.
 
 ## What runs inside the embed
 

@@ -3,6 +3,7 @@ export type Surface = 'auto' | 'pedestal' | 'small-table' | 'tower' | 'pallet' |
 export type Camera = 'normal' | 'overhead' | 'side-left' | 'side-right' | 'diagonal' | 'money-close';
 export type Theme = 'dark' | 'light';
 export type Renderer = 'auto' | 'webgl';
+export type Loader = 'default' | 'none' | 'portal' | 'warp' | 'shutters' | 'blueprint' | 'gold-dust' | 'cinema';
 export type Tool =
   | 'what-does-x-look-like'
   | 'cash-stack-calculator'
@@ -33,12 +34,16 @@ export interface EmbedOptions {
   amounts?: boolean;
   /** A measuring ruler beside the stacks; compare mode on the tower surface only. Default false. */
   ruler?: boolean;
+  /** A 1.75 m person silhouette beside the money, for scale. Default false. */
+  person?: boolean;
   /** Colour of the frame's badges, stats panel and credit. Default "dark". */
   theme?: Theme;
   /** Note count, weight and height of the stack. Default false. */
   stats?: boolean;
   /** "auto" uses WebGPU where available, "webgl" forces WebGL. Default "auto". */
   renderer?: Renderer;
+  /** What covers the frame while the scene loads; "none" shows nothing. Default "default" (the pulsing logo). */
+  loader?: Loader;
 }
 
 export interface FixedFrame {
@@ -69,6 +74,7 @@ export const SURFACES: readonly Surface[];
 export const CAMERAS: readonly Camera[];
 export const THEMES: readonly Theme[];
 export const RENDERERS: readonly Renderer[];
+export const LOADERS: readonly Loader[];
 export const DEFAULTS: Readonly<Required<EmbedOptions>>;
 export const SIZES: Readonly<Record<'small' | 'medium' | 'large' | 'responsive', { width: number | string; height: number }>>;
 export const ASPECT_RATIOS: readonly string[];
