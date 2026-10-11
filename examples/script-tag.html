@@ -7,16 +7,33 @@
   </head>
   <body>
     <!--
-      The official one-line embed. It always draws a single stack on a pallet in the
-      gold vault, sized 16:9 up to 800 px wide. For any other scene, use an iframe.
+      The official one-line embed. With only an amount and a currency it draws a single
+      stack on a pallet in the gold vault, sized 16:9 up to 800 px wide.
     -->
     <script
       src="https://moneyvisualiser.com/embed.js"
       data-mv-widget
       data-amount="250000"
       data-currency="GBP"
-      data-zoom="normal"
-      data-show-stats="true"
+      async></script>
+
+    <!--
+      Every renderer setting has a data attribute too. This one compares 50,000 euros
+      with yen in the cash warehouse, lets the scene pick the surface, and fills the
+      column at 4:3.
+    -->
+    <script
+      src="https://moneyvisualiser.com/embed.js"
+      data-mv-widget
+      data-amount="50000"
+      data-currency="EUR"
+      data-mode="compare"
+      data-to="JPY"
+      data-env="warehouse"
+      data-surface="auto"
+      data-show-labels="true"
+      data-aspect-ratio="4/3"
+      data-max-width="none"
       async></script>
   </body>
 </html>

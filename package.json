@@ -1,6 +1,6 @@
 {
   "name": "moneyvisualiser-embed",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Embed live 3D money stacks from Money Visualiser in any web page.",
   "type": "module",
   "exports": {

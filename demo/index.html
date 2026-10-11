@@ -114,20 +114,26 @@
         </div>
 
         <div class="row">
-          <label><span>Background</span><select name="theme"></select></label>
+          <label><span>Frame theme</span><select name="theme"></select></label>
+          <label><span>Renderer</span><select name="renderer"></select></label>
+        </div>
+
+        <div class="row">
           <label><span>Size</span><select name="size">
-            <option value="responsive">Responsive</option>
-            <option value="large" selected>640 × 480</option>
+            <option value="responsive" selected>Responsive</option>
+            <option value="large">640 × 480</option>
             <option value="medium">480 × 360</option>
             <option value="small">300 × 250</option>
           </select></label>
+          <label id="ratio-field"><span>Aspect ratio</span><select name="ratio"></select></label>
         </div>
 
         <fieldset class="checks">
           <legend>Show</legend>
           <label><input type="checkbox" name="labels" checked /> Value labels</label>
+          <label><input type="checkbox" name="amounts" checked /> Amount badges</label>
           <label><input type="checkbox" name="stats" /> Note count, weight and height</label>
-          <label><input type="checkbox" name="ruler" /> Measuring ruler</label>
+          <label><input type="checkbox" name="ruler" /> Measuring ruler (compare mode, tower)</label>
           <label><input type="checkbox" name="closeUp" /> Start close up (hides labels)</label>
         </fieldset>
       </form>
@@ -135,7 +141,11 @@
       <section class="output" aria-label="Preview and code">
         <div class="preview" id="preview"></div>
         <div class="code-head">
-          <h2>Embed code</h2>
+          <div class="segmented" role="radiogroup" aria-label="Snippet type">
+            <label><input type="radio" name="snippet" value="html" checked /><span>HTML</span></label>
+            <label><input type="radio" name="snippet" value="script" /><span>Script</span></label>
+            <label><input type="radio" name="snippet" value="url" /><span>Link</span></label>
+          </div>
           <button type="button" id="copy">Copy code</button>
         </div>
         <pre id="code"></pre>
@@ -149,16 +159,20 @@
 
     <script type="module">
       import {
+        ASPECT_RATIOS,
         CAMERAS,
         CURRENCIES,
         DEFAULTS,
         ENVIRONMENTS,
+        RENDERERS,
         SIZES,
         SURFACES,
         THEMES,
         embedCode,
         embedTitle,
         embedUrl,
+        responsiveEmbedCode,
+        scriptCode,
       } from '../src/index.js';
 
       const form = document.getElementById('form');
@@ -166,7 +180,23 @@
       const code = document.getElementById('code');
       const copy = document.getElementById('copy');
 
-      const label = (s) => s.replace(/-/g, ' ').replace(/^./, (c) => c.toUpperCase());
+      const NAMES = {
+        'gold-vault': 'Gold Vault',
+        warehouse: 'Cash warehouse',
+        'aircraft-carrier': 'Aircraft carrier',
+        'football-field': 'Football stadium',
+        'parking-lot': 'Rooftop car park',
+        'minimal-grid': 'Simple Room',
+        auto: 'Auto (suits the amount)',
+        'small-table': 'Pillar',
+        normal: 'Front',
+        overhead: 'Top',
+        'side-left': 'Left',
+        'side-right': 'Right',
+        'money-close': 'Money close-up',
+        webgl: 'WebGL only',
+      };
+      const label = (s) => NAMES[s] ?? s.replace(/-/g, ' ').replace(/^./, (c) => c.toUpperCase());
       const fill = (name, values, selected, text = label) => {
         form.elements[name].innerHTML = values
           .map((v) => `<option value="${v}"${v === selected ? ' selected' : ''}>${text(v)}</option>`)
@@ -179,8 +209,22 @@
       fill('surface', SURFACES, DEFAULTS.surface);
       fill('camera', CAMERAS, DEFAULTS.camera);
       fill('theme', THEMES, DEFAULTS.theme);
+      fill('renderer', RENDERERS, DEFAULTS.renderer, (r) => (r === 'auto' ? 'Auto (WebGPU, falls back to WebGL)' : label(r)));
+      fill('ratio', ASPECT_RATIOS, ASPECT_RATIOS[0], (r) => r.replace(/ /g, ''));
 
       let shownUrl = '';
+      let frameStyle = '';
+      let pending = 0;
+      function showPreview(url, options) {
+        shownUrl = url;
+        preview.innerHTML = '';
+        const frame = document.createElement('iframe');
+        frame.src = url;
+        frame.title = embedTitle(options);
+        frame.style.cssText = frameStyle;
+        preview.append(frame);
+      }
+
       function update() {
         const f = form.elements;
         const options = {
@@ -192,31 +236,43 @@
           surface: f.surface.value,
           camera: f.camera.value,
           theme: f.theme.value,
+          renderer: f.renderer.value,
           labels: f.labels.checked,
+          amounts: f.amounts.checked,
           stats: f.stats.checked,
           ruler: f.ruler.checked,
           closeUp: f.closeUp.checked,
         };
-        document.getElementById('to-field').hidden = options.mode === 'single';
+        const responsive = f.size.value === 'responsive';
+        const ratio = f.ratio.value;
         const size = SIZES[f.size.value];
+        document.getElementById('to-field').hidden = options.mode === 'single';
+        document.getElementById('ratio-field').hidden = !responsive;
+        const snippet = document.querySelector('input[name="snippet"]:checked').value;
         try {
           const url = embedUrl(options);
-          code.textContent = embedCode(options, size);
-          if (url !== shownUrl) {
-            shownUrl = url;
-            preview.innerHTML = '';
-            const frame = document.createElement('iframe');
-            frame.src = url;
-            frame.title = embedTitle(options);
-            frame.width = String(size.width);
-            frame.height = String(size.height);
-            frame.style.cssText = 'border:0;border-radius:12px;';
-            preview.append(frame);
-          } else {
-            const frame = preview.querySelector('iframe');
-            frame.width = String(size.width);
-            frame.height = String(size.height);
-          }
+          code.textContent =
+            snippet === 'url'
+              ? url
+              : snippet === 'script'
+                ? scriptCode(
+                    options,
+                    responsive
+                      ? { aspectRatio: ratio, maxWidth: 'none' }
+                      : { aspectRatio: `${size.width} / ${size.height}`, maxWidth: size.width },
+                  )
+                : responsive
+                  ? responsiveEmbedCode(options, { aspectRatio: ratio })
+                  : embedCode(options, size);
+          frameStyle = responsive
+            ? `display:block;width:100%;height:auto;aspect-ratio:${ratio};border:0;border-radius:12px;`
+            : `display:block;width:${size.width}px;height:${size.height}px;border:0;border-radius:12px;`;
+          const frame = preview.querySelector('iframe');
+          if (frame) frame.style.cssText = frameStyle;
+          // Typing an amount would otherwise reload the 3D scene on every key.
+          clearTimeout(pending);
+          if (!frame) showPreview(url, options);
+          else if (url !== shownUrl) pending = setTimeout(() => showPreview(url, options), 400);
         } catch (error) {
           preview.innerHTML = `<p class="error" role="alert">${error.message}</p>`;
           code.textContent = '';
@@ -226,6 +282,7 @@
 
       form.addEventListener('input', update);
       form.addEventListener('change', update);
+      document.querySelectorAll('input[name="snippet"]').forEach((input) => input.addEventListener('change', update));
       copy.addEventListener('click', async () => {
         await navigator.clipboard.writeText(code.textContent);
         copy.textContent = 'Copied';
